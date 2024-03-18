@@ -12,9 +12,9 @@ library(readxl)
 library(dplyr)
 
 #### Clean data ####
-raw_data <- read_excel("data/raw_data/Tutorial 10 Raw Data.xlsx")
+raw_data <- read_excel("data/raw_data/Mini Essay 10 Raw Data.xlsx")
 
-clean_data <- read_excel("data/raw_data/Tutorial 10 Raw Data.xlsx", sheet = "Defensive - Home")
+clean_data <- read_excel("data/raw_data/Mini Essay 10 Raw Data.xlsx", sheet = "Home - For")
 
 clean_data <- clean_data |>
   rename(Defensive_Home = Rating)

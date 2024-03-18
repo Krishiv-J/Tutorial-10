@@ -11,7 +11,6 @@ library(tidyverse)
 library(readxl)
 library(dplyr)
 
-
 #### Clean data ####
 raw_data <- read_excel("data/raw_data/Tutorial 10 Raw Data.xlsx")
 
@@ -20,8 +19,10 @@ clean_data <- read_excel("data/raw_data/Tutorial 10 Raw Data.xlsx", sheet = "Def
 clean_data <- clean_data |>
   rename(Defensive_Home = Rating)
 
+clean_data$Defensive_Home <- 10 - clean_data$Defensive_Home
+
 second_col <- read_excel("data/raw_data/Tutorial 10 Raw Data.xlsx", sheet = "Defensive - Away")
-clean_data$Defensive_Away <- second_col$Rating
+clean_data$Defensive_Away <- 10 - second_col$Rating
 
 third_col <- read_excel("data/raw_data/Tutorial 10 Raw Data.xlsx", sheet = "Attack - Home")
 clean_data$Attack_Home <- third_col$Rating

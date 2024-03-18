@@ -12,8 +12,6 @@ library(readxl)
 library(dplyr)
 
 #### Clean data ####
-raw_data <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx")
-
 home_data <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx", sheet = "Home - For")
 
 home_data <- home_data |>
@@ -21,7 +19,6 @@ home_data <- home_data |>
 
 second_col <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx", sheet = "Home - Against")
 home_data$Home_Conceded <- second_col$`Goals Conceded`
-
 
 
 away_data <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx", sheet = "Away - For")
@@ -72,6 +69,13 @@ home_data$conceded_average <- NULL
 home_data$away_attacking_strength <- away_data$attacking_strength
 home_data$away_defending_strength <- away_data$defending_strength
 
+## Removing Man Utd Row
+home_data <- home_data[home_data$Team != "Manchester United", ]
+
+## Adding Goals Conceded at home to Utd
+conceded_data <- read_excel("data/raw_data/Goals Conceded.xlsx")
+
+home_data$goals_conceded <- conceded_data$`Goals Conceded`
 
 #### Save data ####
 write_csv(home_data, "data/analysis_data/cleaned_data.csv")

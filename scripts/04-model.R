@@ -32,8 +32,13 @@ summary(away_model)
 
 #### Save model ####
 saveRDS(
-  first_model,
-  file = "models/first_model.rds"
+  old_trafford_model,
+  file = "models/home_model.rds"
+)
+
+saveRDS(
+  away_model,
+  file = "models/away_model.rds"
 )
 
 predicted_home_goals <- predict(old_trafford_model, newdata = analysis_data, type = "response")

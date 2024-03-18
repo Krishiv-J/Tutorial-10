@@ -11,6 +11,7 @@ library(tidyverse)
 library(readxl)
 library(dplyr)
 
+
 #### Clean data ####
 home_data <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx", sheet = "Home - For")
 
@@ -19,7 +20,6 @@ home_data <- home_data |>
 
 second_col <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx", sheet = "Home - Against")
 home_data$Home_Conceded <- second_col$`Goals Conceded`
-
 
 away_data <- read_excel("data/raw_data/Essay 10 Raw Data.xlsx", sheet = "Away - For")
 
@@ -72,7 +72,7 @@ home_data$away_defending_strength <- away_data$defending_strength
 ## Removing Man Utd Row
 home_data <- home_data[home_data$Team != "Manchester United", ]
 
-## Adding Goals Conceded at home to Utd
+## Adding Goals Conceded to Utd
 conceded_data <- read_excel("data/raw_data/Goals Conceded.xlsx")
 
 home_data$old_trafford_goals_conceded <- conceded_data$`Goals Conceded at Old Trafford`

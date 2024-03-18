@@ -1,13 +1,11 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: Simplified Model of Maher's "Modelling association football scores"
+subtitle: "Using Poisson Regression to Model Manchester United's Home and Away Games in the 22/23 season"
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: LINK."
+  - Krishiv Jain
+thanks: "Code and data are available at: https://github.com/Krishiv-J/Tutorial-10"
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -20,59 +18,34 @@ bibliography: references.bib
 
 library(tidyverse)
 library(palmerpenguins)
+library(dplyr)
+library(tidyverse)
+library(here)
+library(knitr)
+library(tinytex)
+library(janitor)
 ```
 
 
 # Introduction
 
-You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+This paper aims to build a simplified version of Maher's 1982 "Modelling association football scores" paper (@Maher). In this paper, Maher uses the Poisson Regression to model the number of goals scored in a football (soccer) games. This paper uses his paper and model as a guide to conduct a similar analysis. To conduct his analysis, Maher looks at each team's attacking strength and defensive weakness, both home and away. Maher considered a single game played as giving 2 observations: one for the number of goals scored by the home team, and one for the number of goals scored by the away team. Through a Poisson Regression, and using the aforementioned four metrics, Maher estimated the scores of 462 games (the league had 22 teams), giving him 924 data points. Maher's paper was motivated by attempting to justify the Poisson Regression as being a valid model for modelling football scores. Thus, he delves into various intricacies, such as having four different models whereby each model has a different set of constraints on the predictors. 
 
-The remainder of this paper is structured as follows. @sec-data....
-
-
+In this paper, the focus is placed on the 2022-2023 Premier League season. The same concept as Maher for the predictors are used, except a metric for defensive strength, instead of weakness, is used. The formulas to calculate these four metrics were taken from SBO.net (@sbo). Moreover, this paper focuses on Manchester United, and using a poisson regression to estimate the number of goals they would have scored against a team. 2 models are used; one for United playing at home, and one for them playing away. 
 
 # Data {#sec-data}
 
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+## Raw Data
 
-```{r}
-#| label: fig-bills
-#| fig-cap: Bills of penguins
-#| echo: false
+2 sets of raw data were created. The first one was from whoscored.com (@raw1). Data was provided for various leagues, and for different seasons. For the purpose of this project, the most recent season (2022-2023) for the Premier League was chosen. This source provides information on a variety of metrics for each team. The data that was needed for this paper was the total number of goals scored and the number of goals conceded at home, and away from home for each team. Thus, there was a total of 20 rows (since there are 20 teams) and for each team, there were 4 variables. 
 
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = "none") +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
-```
+The second data set created was from worldfootball.net (@raw2). This website provided the results of every fixture played during the 2022-2023 season. For the purpose of this paper, only the premier league games were needed. Moreover, only the number of goals scored in each game by United were needed. 
 
-Talk more about it.
+## Clean Data
 
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+After reading the data from the first data set, 2 data tables were created: one for home games, one for away games. Each data table included the number of goals scored and conceded. Next, the average number of goals scored and conceded per game was calculated for both home, and away games. Then, the league's average for each of the four metric was calculated. Finally, a team's home attacking strength was calculated as the average number of goals they scored at home divided by the league's average. This same concept was used to calculate each team's home attacking strength, home defensive strength, away attacking strength, away defensive strength. The row for Manchester United was removed since the information was not needed for our model. 
 
-```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
-#| echo: false
-#| warning: false
-#| message: false
-
-analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
-
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
-  theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
-```
-
-Talk way more about it. 
-
-
+The second raw data table was read in. This included information on how many goals United scored against each team in their home and away games. This was merged with the clean data from before. 
 
 # Model
 
@@ -82,16 +55,6 @@ Here we briefly describe the Bayesian analysis model used to investigate... Back
 
 ## Model set-up
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
-
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
 
 We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
 
@@ -115,8 +78,8 @@ Our results are summarized in @tbl-modelresults.
 
 library(rstanarm)
 
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
+#first_model <-
+  #readRDS(file = here::here("models/first_model.rds"))
 ```
 
 ```{r}
@@ -126,13 +89,13 @@ first_model <-
 #| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
+#modelsummary::modelsummary(
+ # list(
+ #   "First model" = first_model
+ # ),
+#  statistic = "mad",
+ # fmt = 2
+#)
 ```
 
 
@@ -179,15 +142,15 @@ In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. Th
 #| fig-cap: "Examining how the model fits, and is affected by, the data"
 #| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
 
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
+#pp_check(first_model) +
+#  theme_classic() +
+#  theme(legend.position = "bottom")
 
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
+#posterior_vs_prior(first_model) +
+ # theme_minimal() +
+  #scale_color_brewer(palette = "Set1") +
+  #theme(legend.position = "bottom") +
+  #coord_flip()
 ```
 
 ## Diagnostics
@@ -206,9 +169,9 @@ posterior_vs_prior(first_model) +
 #| fig-subcap: ["Trace plot", "Rhat plot"]
 #| layout-ncol: 2
 
-plot(first_model, "trace")
+#plot(first_model, "trace")
 
-plot(first_model, "rhat")
+#plot(first_model, "rhat")
 ```
 
 

@@ -18,11 +18,17 @@ analysis_data <- read_csv("data/analysis_data/cleaned_data.csv")
 
 # From https://tellingstorieswithdata.com/13-ijaglm.html
 
-model <- 
-  glm(goals_conceded ~ away_attacking_strength + away_defending_strength,
+old_trafford_model <- 
+  glm(old_trafford_goals_conceded ~ away_attacking_strength + away_defending_strength,
       data = analysis_data, family = "poisson")
 
-summary(model)
+summary(old_trafford_model)
+
+away_model <- 
+  glm(at_home_goals_conceded ~ home_attacking_strength + home_defending_strength,
+      data = analysis_data, family = "poisson")
+
+summary(away_model)
 
 #### Save model ####
 saveRDS(
@@ -30,5 +36,8 @@ saveRDS(
   file = "models/first_model.rds"
 )
 
-analysis_data <- mutate(analysis_data, predicted_goals = predict(model, newdata = analysis_data, type = "response"))
+predicted_home_goals <- predict(old_trafford_model, newdata = analysis_data, type = "response")
+predicted_away_goals <- predict(away_model, newdata = analysis_data, type = "response")
+
+combined_data <- cbind(predicted_home_goals, predicted_away_goals)
 

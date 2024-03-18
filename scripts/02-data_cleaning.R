@@ -75,7 +75,8 @@ home_data <- home_data[home_data$Team != "Manchester United", ]
 ## Adding Goals Conceded at home to Utd
 conceded_data <- read_excel("data/raw_data/Goals Conceded.xlsx")
 
-home_data$goals_conceded <- conceded_data$`Goals Conceded`
+home_data$old_trafford_goals_conceded <- conceded_data$`Goals Conceded at Old Trafford`
+home_data$at_home_goals_conceded <- conceded_data$`Goals Conceded at Home`
 
 #### Save data ####
 write_csv(home_data, "data/analysis_data/cleaned_data.csv")

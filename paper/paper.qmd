@@ -17,7 +17,6 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
-library(palmerpenguins)
 library(dplyr)
 library(tidyverse)
 library(here)
@@ -31,7 +30,10 @@ library(janitor)
 
 This paper aims to build a simplified version of Maher's 1982 "Modelling association football scores" paper (@Maher). In this paper, Maher uses the Poisson Regression to model the number of goals scored in a football (soccer) games. This paper uses his paper and model as a guide to conduct a similar analysis. To conduct his analysis, Maher looks at each team's attacking strength and defensive weakness, both home and away. Maher considered a single game played as giving 2 observations: one for the number of goals scored by the home team, and one for the number of goals scored by the away team. Through a Poisson Regression, and using the aforementioned four metrics, Maher estimated the scores of 462 games (the league had 22 teams), giving him 924 data points. Maher's paper was motivated by attempting to justify the Poisson Regression as being a valid model for modelling football scores. Thus, he delves into various intricacies, such as having four different models whereby each model has a different set of constraints on the predictors. 
 
-In this paper, the focus is placed on the 2022-2023 Premier League season. The same concept as Maher for the predictors are used, except a metric for defensive strength, instead of weakness, is used. The formulas to calculate these four metrics were taken from SBO.net (@sbo). Moreover, this paper focuses on Manchester United, and using a poisson regression to estimate the number of goals they would have scored against a team. 2 models are used; one for United playing at home, and one for them playing away. 
+In this paper, the focus is placed on the 2022-2023 Premier League season. The same concept as Maher for the predictors are used, except a metric for defensive strength, instead of weakness, is used. The formulas to calculate these four metrics were taken from SBO.net (@sbo). Moreover, this paper focuses on Manchester United, and using a poisson regression to estimate the number of goals they would have scored against a team. 2 models are used; one for United playing at home, and one for them playing away.
+
+The data was downloaded, cleaned, and analyzed using the statistical programming language R [@citeR]. The following packages were also used: janitor [@citejanitor], here [@citehere], as well as tidyverse [@citetidyverse], which includes the dplyr [@citedplyr]. 
+
 
 ```{r}
 #| echo: false
@@ -60,26 +62,11 @@ The second raw data table was read in. This included information on how many goa
 
 # Model
 
-The goal of our modelling strategy is twofold. Firstly,...
+The Poisson regression is used to stay consistent with Maher. Maher's reasoning for using this mode was that the Poisson regression is an appropriate model given that the number of goals scored in a football game is considered count data. Moreover, a Poisson regression aligns with the nature of the data. This distribution is particularly applicable due to the reasoning that the number of goals scored by a team in a match is likely to follow a Poisson variable. In football, possession plays a crucial role, offering teams repeated opportunities to attack and score. Whilst the probability of scoring during each possession may be small, the large number of possession opportunities throughout a match leads to a scenario where the number of goals follows a Poisson distribution. (@Maher)
 
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
-
-## Model set-up
-
-
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
-
-
-### Model justification
-
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
-
-We can use maths by including latex between dollar signs, for instance $\theta$.
-
+In this paper, two separate Poisson regressions are conducted. One is for the matches that United played at home, and one for the games that they played away. For both models, the outcome variable is the number of goals scored by United. For the games played at home, the independent variables are the opposition team's ``away_attacking_strength`` and ``away_defending_strength``. For the games played away, the independent variables are the opposition team's ``home_attacking_strength`` and ``home_defending_strength``. 
 
 # Results
-
-Our results are summarized in @tbl-modelresults.
 
 ```{r}
 #| echo: false
@@ -96,6 +83,8 @@ away_model <-
   readRDS(file = here::here("models/away_model.rds"))
 ```
 
+
+
 ```{r}
 #| echo: false
 #| eval: true
@@ -104,7 +93,6 @@ away_model <-
 #| label: tbl-modelresults1
 #| tbl-cap: "Regression models of home goals scored based opposition's away attacking and defending strength"
 #| warning: false
-#| fig-pos: H
 
 modelsummary::modelsummary(
  list(
@@ -119,11 +107,32 @@ modelsummary::modelsummary(
 #| label: tbl-modelresults2
 #| tbl-cap: "Regression models of away goals scored based opposition's home attacking and defending strength"
 #| warning: false
-#| fig-pos: H
 
 modelsummary::modelsummary(
  list(
    "Away model" = away_model))
+```
+
+@tbl-modelresults1 shows the results from the first model, whilst @tbl-modelresults2 shows the results from the first model. To further explore the results, the values for the estimates of the coefficients were used to estimate the number of goals scored in each game that United played. @tbl-homeresults showcases this for the home games, alongside the actual goals that were scored, whilst @tbl-awayresults showcases this for the away games, alongside the actual goals that were scored. 
+
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+#| include: true
+#| label: tbl-homeresults
+#| tbl-cap: "Predicted and Actual Goals scored at home against each team"
+#| warning: false
+
+team <- clean_data$Team
+
+predicted_home_goals <- predict(home_model, newdata = clean_data, type = "response")
+actual_home_goals <- clean_data$old_trafford_goals_conceded
+
+combined_data <- cbind(team, predicted_home_goals, actual_home_goals)
+
+combined_data |>
+  kable()
 ```
 
 ```{r}
@@ -131,88 +140,19 @@ modelsummary::modelsummary(
 #| eval: true
 #| message: false
 #| include: true
-#| label: tbl-results
-#| tbl-cap: "Regression models of away goals scored based opposition's home attacking and defending strength"
+#| label: tbl-awayresults
+#| tbl-cap: "Predicted and Actual Goals scored away against each team"
 #| warning: false
-#| fig-pos: H
 
-predicted_home_goals <- predict(home_model, newdata = clean_data, type = "response")
+team <- clean_data$Team
+
 predicted_away_goals <- predict(away_model, newdata = clean_data, type = "response")
+actual_away_goals <- clean_data$at_home_goals_conceded
 
-combined_data <- cbind(predicted_home_goals, predicted_away_goals)
-```
+combined_data <- cbind(team, predicted_away_goals, actual_away_goals)
 
-# Discussion
-
-## First discussion point {#sec-first-point}
-
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
-
-## Second discussion point
-
-## Third discussion point
-
-## Weaknesses and next steps
-
-Weaknesses and next steps should also be included.
-
-\newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
-
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
-
-#pp_check(first_model) +
-#  theme_classic() +
-#  theme(legend.position = "bottom")
-
-#posterior_vs_prior(first_model) +
- # theme_minimal() +
-  #scale_color_brewer(palette = "Set1") +
-  #theme(legend.position = "bottom") +
-  #coord_flip()
-```
-
-## Diagnostics
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
-
-#plot(first_model, "trace")
-
-#plot(first_model, "rhat")
+combined_data |>
+  kable()
 ```
 
 

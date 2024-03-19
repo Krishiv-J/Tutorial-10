@@ -33,6 +33,17 @@ This paper aims to build a simplified version of Maher's 1982 "Modelling associa
 
 In this paper, the focus is placed on the 2022-2023 Premier League season. The same concept as Maher for the predictors are used, except a metric for defensive strength, instead of weakness, is used. The formulas to calculate these four metrics were taken from SBO.net (@sbo). Moreover, this paper focuses on Manchester United, and using a poisson regression to estimate the number of goals they would have scored against a team. 2 models are used; one for United playing at home, and one for them playing away. 
 
+```{r}
+#| echo: false
+#| include: true
+#| message: false
+
+## Read in the data
+clean_data <-
+  read_csv(here("data/analysis_data/cleaned_data.csv"))
+  show_col_types = FALSE
+```
+
 # Data {#sec-data}
 
 ## Raw Data
@@ -78,28 +89,58 @@ Our results are summarized in @tbl-modelresults.
 
 library(rstanarm)
 
-#first_model <-
-  #readRDS(file = here::here("models/first_model.rds"))
+home_model <-
+  readRDS(file = here::here("models/home_model.rds"))
+
+away_model <-
+  readRDS(file = here::here("models/away_model.rds"))
 ```
 
 ```{r}
 #| echo: false
 #| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| message: false
+#| include: true
+#| label: tbl-modelresults1
+#| tbl-cap: "Regression models of home goals scored based opposition's away attacking and defending strength"
 #| warning: false
+#| fig-pos: H
 
-#modelsummary::modelsummary(
- # list(
- #   "First model" = first_model
- # ),
-#  statistic = "mad",
- # fmt = 2
-#)
+modelsummary::modelsummary(
+ list(
+   "Home model" = home_model))
 ```
 
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+#| include: true
+#| label: tbl-modelresults2
+#| tbl-cap: "Regression models of away goals scored based opposition's home attacking and defending strength"
+#| warning: false
+#| fig-pos: H
 
+modelsummary::modelsummary(
+ list(
+   "Away model" = away_model))
+```
 
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+#| include: true
+#| label: tbl-results
+#| tbl-cap: "Regression models of away goals scored based opposition's home attacking and defending strength"
+#| warning: false
+#| fig-pos: H
+
+predicted_home_goals <- predict(home_model, newdata = clean_data, type = "response")
+predicted_away_goals <- predict(away_model, newdata = clean_data, type = "response")
+
+combined_data <- cbind(predicted_home_goals, predicted_away_goals)
+```
 
 # Discussion
 
